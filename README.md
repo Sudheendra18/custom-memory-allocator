@@ -1,18 +1,18 @@
 # Table of Contents
-&nbsp;[Introduction](#introduction)  <br/> 
-&nbsp;[Build instructions](#build-instructions)  <br/> 
-&nbsp;[What's wrong with Malloc?](#whats-wrong-with-malloc)  <br/> 
-&nbsp;[Custom allocators](#custom-allocators)  <br/> 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Linear Allocator](#linear-allocator)  <br/> 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Stack Allocator](#stack-allocator)  <br/> 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Pool Allocator](#pool-allocator)  <br/> 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Free list Allocator](#free-list-allocator)  <br/> 
-&nbsp;[Benchmarks](#benchmarks)  <br/> 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Time complexity](#time-complexity)  <br/> 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Space complexity](#space-complexity)  <br/> 
-&nbsp;[Summary](#summary)  <br/> 
-&nbsp;[Last thoughts](#last-thoughts)  <br/> 
-&nbsp;[Future work](#future-work)  <br/> 
+* [Introduction](#introduction)
+* [Build instructions](#build-instructions)
+* [What's wrong with Malloc?](#whats-wrong-with-malloc)
+* [Custom allocators](#custom-allocators)
+  * [Linear Allocator](#linear-allocator)
+  * [Stack Allocator](#stack-allocator)
+  * [Pool Allocator](#pool-allocator)
+  * [Free list Allocator](#free-list-allocator)
+* [Benchmarks](#benchmarks)
+  * [Time complexity](#time-complexity)
+  * [Space complexity](#space-complexity)
+* [Summary](#summary)
+* [Last thoughts](#last-thoughts)
+* [Future work](#future-work)
 
 # Introduction
 Dynamic memory allocation using standard `malloc` and `free` is flexible but incurs significant performance overhead. This project implements custom C++ memory allocators that manage pre-allocated memory arenas to deliver faster, predictable allocations. The goal is to explore how different allocator designs operate, examine their trade-offs, and benchmark their runtime performance.
@@ -33,7 +33,7 @@ cmake --build build
 Custom allocators optimize performance by pre-allocating large memory arenas upfront and using domain-specific data structures:
 * **Fewer Mallocs:** Pre-allocates memory once to eliminate repetitive runtime syscalls.
 * **Tailored Data Structures:** Uses simple tracking (e.g., offsets, intrusive linked lists) suited to specific allocation patterns.
-* **Domain Constraints:** Imposing constraints (such as uniform chunk sizes or LIFO deallocation) enables ultra-fast $O(1)$ operations.
+* **Domain Constraints:** Imposing constraints (such as uniform chunk sizes or LIFO deallocation) enables ultra-fast O(1) operations.
 
 ## Linear allocator
 The simplest allocator. Maintains an offset pointer at the beginning of the memory arena and increments it forward sequentially for each allocation.
@@ -53,7 +53,7 @@ Advances the offset pointer forward by the requested allocation size.
 _Complexity: **O(1)**_
 
 ### Free
-Individual blocks cannot be freed. The entire memory arena is reset all at once in $O(1)$.
+Individual blocks cannot be freed. The entire memory arena is reset all at once in O(1).
 
 ---
 
@@ -130,14 +130,14 @@ Searches the free list using **First-Fit** (first block that fits) or **Best-Fit
 _Complexity: **O(N)** where N is the number of free blocks._
 
 ### Linked list Free
-Reads the block header, inserts the block back into the address-sorted free list, and merges adjacent contiguous free blocks (**Coalescence**) in $O(1)$ to prevent memory fragmentation.
+Reads the block header, inserts the block back into the address-sorted free list, and merges adjacent contiguous free blocks (**Coalescence**) in O(1) to prevent memory fragmentation.
 
 ![Freeing in a Free list Allocator](docs/images/freelist_seq3.png)
 
 _Complexity: **O(N)** search + **O(1)** merge._
 
 ### Red black tree data structure
-Using a Red-Black Tree keyed by size reduces search complexity from $O(N)$ to $O(\log N)$ while enabling fast Best-Fit allocation. An auxiliary doubly linked list maintains address order for $O(1)$ coalescence.
+Using a Red-Black Tree keyed by size reduces search complexity from O(N) to O(log N) while enabling fast Best-Fit allocation. An auxiliary doubly linked list maintains address order for O(1) coalescence.
 
 ---
 
@@ -145,18 +145,18 @@ Using a Red-Black Tree keyed by size reduces search complexity from $O(N)$ to $O
 Benchmarked with varying operation counts using a fixed block size of 4,096 bytes.
 
 ## Time complexity
-* **Malloc:** Slowest allocator ($O(N)$) due to kernel transitions and general-purpose bookkeeping.
-* **Free List:** ~3x faster than malloc while remaining general-purpose ($O(N)$).
+* **Malloc:** Slowest allocator (O(N)) due to kernel transitions and general-purpose bookkeeping.
+* **Free List:** ~3x faster than malloc while remaining general-purpose (O(N)).
 * **Pool, Stack, Linear:** Exhibit near-instantaneous runtime. (Initial slopes reflect one-time `Init()` arena setup).
 
 ![Time complexity of different allocators](docs/images/operations_over_time.png)
 
-Excluding the one-time `Init()` setup clearly demonstrates true constant $O(1)$ runtime for Linear, Stack, and Pool allocators:
+Excluding the one-time `Init()` setup clearly demonstrates true constant O(1) runtime for Linear, Stack, and Pool allocators:
 
 ![Time complexity of different allocators without Init](docs/images/operations_over_time_no_init.png)
 
 ## Space complexity
-All allocators scale linearly ($O(N)$) with total requested memory, as metadata headers represent a negligible fraction of large allocations.
+All allocators scale linearly (O(N)) with total requested memory, as metadata headers represent a negligible fraction of large allocations.
 
 ![Space complexity of different allocators](docs/images/operations_over_space.png)
 
@@ -175,6 +175,6 @@ All allocators scale linearly ($O(N)$) with total requested memory, as metadata 
 
 # Future work
 * Implement 8-byte alignment optimization to eliminate headers.
-* Implement a Red-Black Tree Free List allocator ($O(\log N)$).
+* Implement a Red-Black Tree Free List allocator (O(log N)).
 * Implement Buddy and Slab allocators.
 * Benchmark cache misses and spatial locality.
